@@ -1,5 +1,5 @@
+# Import semua library yang dibutuhkan
 import cv2
-import os
 import numpy as np
 
 face_ref = cv2.CascadeClassifier("face_ref.xml")
@@ -21,33 +21,29 @@ minHeight = 0.1 * camera.get(4)
 
 def main():
     while True:
-        ret, frame = camera.read()
-        if not ret:
-            print("Gagal membaca frame dari kamera.")
-            break
-
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Ubah frame ke grayscale
-        faces = ubah_gray(gray_frame)  # Deteksi wajah pada frame grayscale
-        kotak_scan(frame, gray_frame, faces)
+        _, frame = camera.read()
+        # Ubah frame ke grayscale
+        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  
+        # Deteksi wajah pada frame grayscale
+        kotak_scan(frame, gray_frame)
         
         cv2.imshow('Deteksi Wajah', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             keluar()
             break
 
-def ubah_gray(frame):
-    faces = face_ref.detectMultiScale(frame, scaleFactor=1.5, minNeighbors=2, minSize=(round(minWidth), round(minHeight)))
-    return faces
-
-def kotak_scan(frame, gray_frame, faces):
+def kotak_scan(frame, gray_frame):
+    faces = face_ref.detectMultiScale(gray_frame, scaleFactor=1.5, minNeighbors=2, minSize=(round(minWidth), round(minHeight)))
     for x, y, w, h in faces:
         cv2.rectangle(frame, (x, y), (x+w, y+h), (255, 0, 0), 4)
+        
         # Ambil bagian wajah dari frame grayscale
         face_img = gray_frame[y:y+h, x:x+w]
         id, confidence = faceRecognizer.predict(face_img)
         print(id, confidence)
         
-        if confidence <= 50:  # Jika confidence kecil, maka cocok dengan data yang ada
+        # Jika confidence kecil, maka data cocok
+        if confidence <= 50:  
             nameID = names.get(id, "Tidak Diketahui")
             confidenceTxt = "{0}%".format(round(100 - confidence))
         else:
